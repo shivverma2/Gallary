@@ -11,6 +11,89 @@
             margin: 0;
             padding: 0;
         }
+        .slider-container {
+            max-width: 700px;
+            margin: 30px auto 0 auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+            background: #fff;
+        }
+        .slider {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(.77,0,.18,1);
+        }
+        .slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .slide img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            display: block;
+        }
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: none;
+            font-size: 2rem;
+            padding: 0 16px;
+            cursor: pointer;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        .slider-btn.left {
+            left: 10px;
+        }
+        .slider-btn.right {
+            right: 10px;
+        }
+        .slider-dots {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        .slider-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #bbb;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+        .slider-dot.active {
+            background: #333;
+        }
+        @media (max-width: 800px) {
+            .slider-container {
+                max-width: 98vw;
+            }
+            .slide img {
+                height: 200px;
+            }
+        }
+        @media (max-width: 600px) {
+            .gallery {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                padding: 10px;
+            }
+            .gallery-item img {
+                height: 100px;
+            }
+            .slide img {
+                height: 120px;
+            }
+        }
         .gallery {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -60,10 +143,49 @@
 </head>
 <body>
     <h1 style="text-align:center; margin-top:30px;">JavaScript Image Gallery</h1>
+    <div class="slider-container">
+        <button class="slider-btn left" id="prevBtn">&#10094;</button>
+        <div class="slider" id="slider"></div>
+        <button class="slider-btn right" id="nextBtn">&#10095;</button>
+        <div class="slider-dots" id="sliderDots"></div>
+    </div>
     <div class="gallery" id="gallery"></div>
     <script>
-        // Array of 30 image URLs (using placeholder images)
-        const images = Array.from({length: 30}, (_, i) => `https://picsum.photos/seed/${i+1}/300/200`);
+        // Array of 30 image URLs (Unsplash and Picsum)
+        const images = [
+            'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1465101178521-c1a2b3a8a5c6?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1465101178521-c1a2b3a8a5c6?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1465101178521-c1a2b3a8a5c6?auto=format&fit=crop&w=400&q=80',
+            'https://picsum.photos/id/1015/400/300',
+            'https://picsum.photos/id/1016/400/300',
+            'https://picsum.photos/id/1018/400/300',
+            'https://picsum.photos/id/1020/400/300',
+            'https://picsum.photos/id/1024/400/300',
+            'https://picsum.photos/id/1025/400/300',
+            'https://picsum.photos/id/1027/400/300',
+            'https://picsum.photos/id/1033/400/300',
+            'https://picsum.photos/id/1035/400/300',
+            'https://picsum.photos/id/1037/400/300',
+            'https://picsum.photos/id/1040/400/300',
+            'https://picsum.photos/id/1041/400/300',
+            'https://picsum.photos/id/1042/400/300',
+            'https://picsum.photos/id/1043/400/300',
+            'https://picsum.photos/id/1044/400/300'
+        ];
+
+        // Gallery
         const gallery = document.getElementById('gallery');
         images.forEach((src, idx) => {
             const item = document.createElement('div');
@@ -78,6 +200,68 @@
             item.appendChild(caption);
             gallery.appendChild(item);
         });
+
+        // Slider
+        const slider = document.getElementById('slider');
+        const sliderDots = document.getElementById('sliderDots');
+        let currentSlide = 0;
+
+        function renderSlider() {
+            slider.innerHTML = '';
+            const slide = document.createElement('div');
+            slide.className = 'slide';
+            const img = document.createElement('img');
+            img.src = images[currentSlide];
+            img.alt = `Slide ${currentSlide+1}`;
+            slide.appendChild(img);
+            slider.appendChild(slide);
+            slider.style.transform = `translateX(0)`;
+        }
+
+        function renderDots() {
+            sliderDots.innerHTML = '';
+            images.forEach((_, idx) => {
+                const dot = document.createElement('button');
+                dot.className = 'slider-dot' + (idx === currentSlide ? ' active' : '');
+                dot.onclick = () => {
+                    currentSlide = idx;
+                    updateSlider();
+                };
+                sliderDots.appendChild(dot);
+            });
+        }
+
+        function updateSlider() {
+            renderSlider();
+            renderDots();
+        }
+
+        document.getElementById('prevBtn').onclick = () => {
+            currentSlide = (currentSlide - 1 + images.length) % images.length;
+            updateSlider();
+        };
+        document.getElementById('nextBtn').onclick = () => {
+            currentSlide = (currentSlide + 1) % images.length;
+            updateSlider();
+        };
+
+        // Swipe support for mobile
+        let startX = null;
+        slider.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+        });
+        slider.addEventListener('touchend', (e) => {
+            if (startX === null) return;
+            let endX = e.changedTouches[0].clientX;
+            if (endX - startX > 50) {
+                document.getElementById('prevBtn').click();
+            } else if (startX - endX > 50) {
+                document.getElementById('nextBtn').click();
+            }
+            startX = null;
+        });
+
+        updateSlider();
     </script>
 </body>
 </html>
